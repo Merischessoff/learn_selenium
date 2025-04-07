@@ -2,6 +2,10 @@ package br.com.selenium.web.views.login;
 
 import br.com.selenium.web.views.PageObject;
 import org.openqa.selenium.*;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 public class LoginPage extends PageObject {
     private static final String URL_LOGIN = "";
@@ -12,18 +16,29 @@ public class LoginPage extends PageObject {
     }
 
     public void preencherFormularioDeLogin(String company, String username, String password) {
-        try {
-            Thread.sleep(1000);
-            SearchContext shadow = browser.findElement(By.cssSelector("login-form")).getShadowRoot();
-            Thread.sleep(1000);
-            shadow.findElement(By.name("cpnyname")).sendKeys(company);
-            shadow.findElement(By.name("username")).sendKeys(username);
-            shadow.findElement(By.name("password")).sendKeys(password);
+        SearchContext shadow = new WebDriverWait(browser, Duration.ofSeconds(5))
+            .until(driver -> driver.findElement(By.cssSelector("login-form")).getShadowRoot());
 
-        } catch (Exception e) {
+        WebElement campoEmpresa = shadow.findElement(By.id("cpnyname"));
+        WebElement campoUsuario = shadow.findElement(By.id("username"));
+        WebElement campoSenha   = shadow.findElement(By.id("password"));
 
-        }
+        JavascriptExecutor js = (JavascriptExecutor) browser;
+
+        setInput(js, campoEmpresa, company);
+        setInput(js, campoUsuario, username);
+        setInput(js, campoSenha, password);
     }
+
+    private void setInput(JavascriptExecutor js, WebElement input, String valor) {
+        js.executeScript(
+            "arguments[0].value = arguments[1];" +
+                "arguments[0].dispatchEvent(new Event('input', { bubbles: true }));" +
+                "arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
+            input, valor
+        );
+    }
+
 
     private WebElement getShadowRoot(WebDriver driver, WebElement shadowHost) {
         return (WebElement) ((JavascriptExecutor) driver)
@@ -32,17 +47,22 @@ public class LoginPage extends PageObject {
 
     public void efetuarLogin() {
         SearchContext shadow = browser.findElement(By.cssSelector("login-form")).getShadowRoot();
-        shadow.findElement(By.id("btlogin")).click();
+        WebElement botaoLogin = shadow.findElement(By.id("btlogin"));
+        botaoLogin.click();
     }
 
     public String getNomeUsuarioLogado() {
         try {
-            return browser.findElement(By.cssSelector("#avatar-usuario > img")).getAttribute("title");
-        } catch (NoSuchElementException e) {
+            WebElement el = new WebDriverWait(browser, Duration.ofSeconds(5))
+                .until(ExpectedConditions.presenceOfElementLocated(By.id("name-usu-logado")));
+
+            String texto = el.getText();
+
+            return texto;
+        } catch (NoSuchElementException | TimeoutException e) {
             return null;
         }
     }
-
     public boolean isPaginaAtual() {
         return browser.getCurrentUrl().contains(URL_LOGIN);
     }

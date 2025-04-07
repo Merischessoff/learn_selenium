@@ -20,11 +20,11 @@ public class LoginTest {
 
     @Test
     public void deveriaEfetuarLoginComDadosValidos() {
-        paginaDeLogin.preencherFormularioDeLogin("teste", "teste", "teste");
+        paginaDeLogin.preencherFormularioDeLogin("compteste", "usuteste", "senteste");
         paginaDeLogin.efetuarLogin();
 
         String nomeUsuarioLogado = paginaDeLogin.getNomeUsuarioLogado();
-        Assertions.assertEquals("teste", nomeUsuarioLogado);
+        Assertions.assertEquals("usuteste", nomeUsuarioLogado);
         Assertions.assertFalse(paginaDeLogin.isPaginaAtual());
     }
 
